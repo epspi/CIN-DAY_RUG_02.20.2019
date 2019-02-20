@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="Eugene Pyatigorsky / Kroger R&amp;D" />
+  <title>MarketMatching for Causal Inference in R</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="2019.02.20_CINDAY_RUG_files/reveal.js-3.3.0.1/css/reveal.css"/>
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  { color: #cccccc; background-color: #303030; }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ffcfaf; } /* Alert */
+code span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bn { color: #dca3a3; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #f0dfaf; } /* ControlFlow */
+code span.ch { color: #dca3a3; } /* Char */
+code span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
+code span.co { color: #7f9f7f; } /* Comment */
+code span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
+code span.do { color: #7f9f7f; } /* Documentation */
+code span.dt { color: #dfdfbf; } /* DataType */
+code span.dv { color: #dcdccc; } /* DecVal */
+code span.er { color: #c3bf9f; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #c0bed1; } /* Float */
+code span.fu { color: #efef8f; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #7f9f7f; font-weight: bold; } /* Information */
+code span.kw { color: #f0dfaf; } /* Keyword */
+code span.op { color: #f0efd0; } /* Operator */
+code span.ot { color: #efef8f; } /* Other */
+code span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
+code span.sc { color: #dca3a3; } /* SpecialChar */
+code span.ss { color: #cc9393; } /* SpecialString */
+code span.st { color: #cc9393; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #cc9393; } /* VerbatimString */
+code span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="2019.02.20_CINDAY_RUG_files/reveal.js-3.3.0.1/css/theme/simple.css" id="theme">
+
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+
+    <link rel="stylesheet" href="www\theme.css"/>
+
+<!-- Printing and PDF exports -->
+<script id="paper-css" type="application/dynamic-css">
+
+/* Default Print Stylesheet Template
+   by Rob Glazebrook of CSSnewbie.com
+   Last Updated: June 4, 2008
+
+   Feel free (nay, compelled) to edit, append, and
+   manipulate this file as you see fit. */
+
+
+@media print {
+
+	/* SECTION 1: Set default width, margin, float, and
+	   background. This prevents elements from extending
+	   beyond the edge of the printed page, and prevents
+	   unnecessary background images from printing */
+	html {
+		background: #fff;
+		width: auto;
+		height: auto;
+		overflow: visible;
+	}
+	body {
+		background: #fff;
+		font-size: 20pt;
+		width: auto;
+		height: auto;
+		border: 0;
+		margin: 0 5%;
+		padding: 0;
+		overflow: visible;
+		float: none !important;
+	}
+
+	/* SECTION 2: Remove any elements not needed in print.
+	   This would include navigation, ads, sidebars, etc. */
+	.nestedarrow,
+	.controls,
+	.fork-reveal,
+	.share-reveal,
+	.state-background,
+	.reveal .progress,
+	.reveal .backgrounds {
+		display: none !important;
+	}
+
+	/* SECTION 3: Set body font face, size, and color.
+	   Consider using a serif font for readability. */
+	body, p, td, li, div {
+		font-size: 20pt!important;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		color: #000;
+	}
+
+	/* SECTION 4: Set heading font face, sizes, and color.
+	   Differentiate your headings from your body text.
+	   Perhaps use a large sans-serif for distinction. */
+	h1,h2,h3,h4,h5,h6 {
+		color: #000!important;
+		height: auto;
+		line-height: normal;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		text-shadow: 0 0 0 #000 !important;
+		text-align: left;
+		letter-spacing: normal;
+	}
+	/* Need to reduce the size of the fonts for printing */
+	h1 { font-size: 28pt !important;  }
+	h2 { font-size: 24pt !important; }
+	h3 { font-size: 22pt !important; }
+	h4 { font-size: 22pt !important; font-variant: small-caps; }
+	h5 { font-size: 21pt !important; }
+	h6 { font-size: 20pt !important; font-style: italic; }
+
+	/* SECTION 5: Make hyperlinks more usable.
+	   Ensure links are underlined, and consider appending
+	   the URL to the end of the link for usability. */
+	a:link,
+	a:visited {
+		color: #000 !important;
+		font-weight: bold;
+		text-decoration: underline;
+	}
+	/*
+	.reveal a:link:after,
+	.reveal a:visited:after {
+		content: " (" attr(href) ") ";
+		color: #222 !important;
+		font-size: 90%;
+	}
+	*/
+
+
+	/* SECTION 6: more reveal.js specific additions by @skypanther */
+	ul, ol, div, p {
+		visibility: visible;
+		position: static;
+		width: auto;
+		height: auto;
+		display: block;
+		overflow: visible;
+		margin: 0;
+		text-align: left !important;
+	}
+	.reveal pre,
+	.reveal table {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.reveal pre code {
+		padding: 20px;
+		border: 1px solid #ddd;
+	}
+	.reveal blockquote {
+		margin: 20px 0;
+	}
+	.reveal .slides {
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 0 !important;
+		zoom: 1 !important;
+
+		overflow: visible !important;
+		display: block !important;
+
+		text-align: left !important;
+		-webkit-perspective: none;
+		   -moz-perspective: none;
+		    -ms-perspective: none;
+		        perspective: none;
+
+		-webkit-perspective-origin: 50% 50%;
+		   -moz-perspective-origin: 50% 50%;
+		    -ms-perspective-origin: 50% 50%;
+		        perspective-origin: 50% 50%;
+	}
+	.reveal .slides section {
+		visibility: visible !important;
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+		display: block !important;
+		overflow: visible !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 60px 20px !important;
+		z-index: auto !important;
+
+		opacity: 1 !important;
+
+		page-break-after: always !important;
+
+		-webkit-transform-style: flat !important;
+		   -moz-transform-style: flat !important;
+		    -ms-transform-style: flat !important;
+		        transform-style: flat !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+
+		-webkit-transition: none !important;
+		   -moz-transition: none !important;
+		    -ms-transition: none !important;
+		        transition: none !important;
+	}
+	.reveal .slides section.stack {
+		padding: 0 !important;
+	}
+	.reveal section:last-of-type {
+		page-break-after: avoid !important;
+	}
+	.reveal section .fragment {
+		opacity: 1 !important;
+		visibility: visible !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+	}
+	.reveal section img {
+		display: block;
+		margin: 15px 0px;
+		background: rgba(255,255,255,1);
+		border: 1px solid #666;
+		box-shadow: none;
+	}
+
+	.reveal section small {
+		font-size: 0.8em;
+	}
+
+}  
+</script>
+
+
+<script id="pdf-css" type="application/dynamic-css">
+    
+/**
+ * This stylesheet is used to print reveal.js
+ * presentations to PDF.
+ *
+ * https://github.com/hakimel/reveal.js#pdf-export
+ */
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+
+body {
+	margin: 0 auto !important;
+	border: 0;
+	padding: 0;
+	float: none !important;
+	overflow: visible;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Remove any elements not needed in print. */
+.nestedarrow,
+.reveal .controls,
+.reveal .progress,
+.reveal .playback,
+.reveal.overview,
+.fork-reveal,
+.share-reveal,
+.state-background {
+	display: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-shadow: 0 0 0 #000 !important;
+}
+
+.reveal pre code {
+	overflow: hidden !important;
+	font-family: Courier, 'Courier New', monospace !important;
+}
+
+ul, ol, div, p {
+	visibility: visible;
+	position: static;
+	width: auto;
+	height: auto;
+	display: block;
+	overflow: visible;
+	margin: auto;
+}
+.reveal {
+	width: auto !important;
+	height: auto !important;
+	overflow: hidden !important;
+}
+.reveal .slides {
+	position: static;
+	width: 100%;
+	height: auto;
+
+	left: auto;
+	top: auto;
+	margin: 0 !important;
+	padding: 0 !important;
+
+	overflow: visible;
+	display: block;
+
+	-webkit-perspective: none;
+	   -moz-perspective: none;
+	    -ms-perspective: none;
+	        perspective: none;
+
+	-webkit-perspective-origin: 50% 50%; /* there isn't a none/auto value but 50-50 is the default */
+	   -moz-perspective-origin: 50% 50%;
+	    -ms-perspective-origin: 50% 50%;
+	        perspective-origin: 50% 50%;
+}
+
+.reveal .slides section {
+	page-break-after: always !important;
+
+	visibility: visible !important;
+	position: relative !important;
+	display: block !important;
+	position: relative !important;
+
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 1px;
+
+	opacity: 1 !important;
+
+	-webkit-transform-style: flat !important;
+	   -moz-transform-style: flat !important;
+	    -ms-transform-style: flat !important;
+	        transform-style: flat !important;
+
+	-webkit-transform: none !important;
+	   -moz-transform: none !important;
+	    -ms-transform: none !important;
+	        transform: none !important;
+}
+
+.reveal section.stack {
+	margin: 0 !important;
+	padding: 0 !important;
+	page-break-after: avoid !important;
+	height: auto !important;
+	min-height: auto !important;
+}
+
+.reveal img {
+	box-shadow: none;
+}
+
+.reveal .roll {
+	overflow: visible;
+	line-height: 1em;
+}
+
+/* Slide backgrounds are placed inside of their slide when exporting to PDF */
+.reveal section .slide-background {
+	display: block !important;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: -1;
+}
+
+/* All elements should be above the slide-background */
+.reveal section>* {
+	position: relative;
+	z-index: 1;
+}
+
+/* Display slide speaker notes when 'showNotes' is enabled */
+.reveal .speaker-notes-pdf {
+	display: block;
+	width: 100%;
+	max-height: none;
+	left: auto;
+	top: auto;
+	z-index: 100;
+}
+
+/* Display slide numbers when 'slideNumber' is enabled */
+.reveal .slide-number-pdf {
+	display: block;
+	position: absolute;
+	font-size: 14px;
+}
+
+</script>
+
+
+<script>
+var style = document.createElement( 'style' );
+style.type = 'text/css';
+var style_script_id = window.location.search.match( /print-pdf/gi ) ? 'pdf-css' : 'paper-css';
+var style_script = document.getElementById(style_script_id).text;
+style.innerHTML = style_script;
+document.getElementsByTagName('head')[0].appendChild(style);
+</script>
+
+    <link rel="stylesheet" href="http://s3.amazonaws.com/static.slid.es/fonts/merriweathersans/merriweathersans.css">
+    <link rel="stylesheet" href="http://s3.amazonaws.com/static.slid.es/fonts/oxygen/oxygen.css">
+    <link href="2019.02.20_CINDAY_RUG_files/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+    <link href="2019.02.20_CINDAY_RUG_files/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section>
+    <h1 class="title"><b>MarketMatching</b><br>for<br>Causal Inference<br>in <b>R</b></h1>
+    <h2 class="author">Eugene Pyatigorsky / Kroger R&amp;D</h2>
+    <h3 class="date"><b>CIN-DAY RUG</b> February 2019</h3>
+</section>
+
+<section id="agenda" class="slide level2">
+<h2>Agenda</h2>
+<ul>
+<li class="fragment">Discussion: what’s your workflow for analyzing interventions?</li>
+<li class="fragment">The building blocks (<strong>bsts</strong>, <strong>CausalImpact</strong>, and <strong>dtw</strong>)</li>
+<li class="fragment">Demo time (<strong>MarketMatching</strong>)</li>
+</ul>
+</section>
+<section class="slide level2">
+
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/z1VaYGj0DIo" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
+</iframe>
+</section>
+<section id="inference-using-causalimpact" class="slide level2">
+<h2>Inference using <b class="purple">CausalImpact</b></h2>
+<p><img data-src="figures/causalimpact.png" /></p>
+</section>
+<section id="potential-outcomes" class="slide level2">
+<h2>Potential Outcomes</h2>
+<p>This analysis of interventions in an observational setting uses the idea of <strong>potential outcomes</strong> (see <a href="https://en.wikipedia.org/wiki/Rubin_causal_model">Rubin Causal Model</a>.</p>
+<p><img data-src="figures/potential_outcomes.jpg" /></p>
+<p>Fit a baseline forecast to predict the <strong>counterfactual</strong>, i.e., how the response variable would have evolved after the intervention if the intervention had never occurred.</p>
+</section>
+<section class="slide level2">
+
+<p><img data-src="figures/causal_plot.png" /></p>
+</section>
+<section id="credible-intervals-for-impact" class="slide level2">
+<h2>Credible intervals for impact</h2>
+<pre><code>## Posterior inference {CausalImpact}
+## 
+##                          Average        Cumulative  
+## Actual                   117            3511        
+## Prediction (s.d.)        107 (0.37)     3196 (11.03)
+## 95% CI                   [106, 107]     [3174, 3217]
+##                                                     
+## Absolute effect (s.d.)   11 (0.37)      316 (11.03) 
+## 95% CI                   [9.8, 11]      [294.9, 337]
+##                                                     
+## Relative effect (s.d.)   9.9% (0.35%)   9.9% (0.35%)
+## 95% CI                   [9.2%, 11%]    [9.2%, 11%] 
+## 
+## Posterior tail-area probability p:   0.001
+## Posterior prob. of a causal effect:  99.9%
+## 
+## For more details, type: summary(impact, &quot;report&quot;)</code></pre>
+</section>
+<section class="slide level2">
+
+<h3 id="assumptions">Assumptions</h3>
+<ul>
+<li class="fragment">a <strong>synthetic baseline</strong> forecast can be constructed based on similar time series</li>
+<li class="fragment">the relationship between the similar time series and the intervention-treated time series does not change after the intervention (static regression)</li>
+<li class="fragment">the synthetic baseline is not affected by the intervention (none of the inputs that go into making a baseline – i.e. similar time series – are touched by the intervention)</li>
+</ul>
+</section>
+<section id="forecasting-a-baseline" class="slide level2">
+<h2>Forecasting a baseline</h2>
+<p><img data-src="figures/bsts.png" /></p>
+</section>
+<section id="simplest-bsts-model" class="slide level2">
+<h2>Simplest <b class="purple">bsts</b> model</h2>
+<p><img data-src="figures/bsts_local_level.png" /></p>
+<p>The <strong>local level model</strong> is a random walk observed with noise</p>
+<ul>
+<li class="fragment">a <strong>forecasting</strong> equation and a <strong>smoothing</strong> equation</li>
+<li class="fragment">two sources of error</li>
+</ul>
+</section>
+<section id="customize-the-structure" class="slide level2">
+<h2>Customize the structure</h2>
+<p><img data-src="figures/bsts_season_trend_model.png" /></p>
+<ul>
+<li class="fragment">Structural model with a linear trend, seasonality, and regressors</li>
+<li class="fragment"><strong>Spike &amp; Slab</strong> priors on the regressors perform variable selection for free</li>
+</ul>
+</section>
+<section class="slide level2">
+
+<h3 id="how-do-you-choose-the-predictors">How do you choose the predictors?</h3>
+<ul>
+<li class="fragment">Business logic (cumbersome and fickle)</li>
+<li class="fragment">Correlation (size not considered)</li>
+<li class="fragment">Euclidian distance (affected by slight time misalignments)</li>
+<li class="fragment">Dynamic Time Warping (<strong>dtw</strong>)</li>
+</ul>
+</section>
+<section id="a-timeless-old-approach" class="slide level2">
+<h2>A timeless (old?) approach</h2>
+<p><img data-src="figures/chiba.png" /></p>
+<ul>
+<li class="fragment">Original DTW algorithm by <a href="https://www.irit.fr/~Julien.Pinquier/Docs/TP_MABS/res/dtw-sakoe-chiba78.pdf">Sakoe and Chiba (1978)</a></li>
+<li class="fragment">Came out of speech recognition community</li>
+<li class="fragment">Many variations and enhancements</li>
+<li class="fragment">Now popular as general purpose time series clustering method (<a href="https://www.aaai.org/Papers/Workshops/1994/WS-94-03/WS94-03-031.pdf">Berndt &amp; Clifford 1994</a>)</li>
+</ul>
+</section>
+<section id="controls-matching-using-dtw" class="slide level2">
+<h2>Controls matching using <b class="purple">dtw</b></h2>
+<blockquote>
+<p>Dynamical Time Warping finds the best <strong>alignment</strong> between two time series by stretching or compressing them along the time dimension</p>
+</blockquote>
+<figure>
+<img data-src="figures/dtw_comparison.png" alt="Euclidian Distance vs Dynamic Time Warping" /><figcaption>Euclidian Distance vs Dynamic Time Warping</figcaption>
+</figure>
+</section>
+<section class="slide level2">
+
+<p>Find the <strong>warping path</strong> that minimizes the <strong>total distance</strong></p>
+<figure>
+<img data-src="figures/dtw_matrix.png" alt="Keogh 2002" /><figcaption>Keogh 2002</figcaption>
+</figure>
+</section>
+<section id="convenient-workflow-using-marketmatching" class="slide level2">
+<h2>Convenient workflow using <b class="purple">MarketMatching</b></h2>
+<ol type="1">
+<li class="fragment">Pre-screening step: Uses <code>dtw</code> along with correlations to cull the list of controls condidates</li>
+<li class="fragment">Inference step: Dispatches <code>CausalImpact</code> with some defaults and produces tons of diagnostics</li>
+</ol>
+</section>
+<section id="demo-time" class="slide level2">
+<h2><b class="pink">Demo Time!</b></h2>
+</section>
+<section class="slide level2">
+
+<h3 id="with-a-little-local-crime">… with a little local crime</h3>
+<p><img data-src="figures/police_data.png" /></p>
+<p><a href="https://data.cincinnati-oh.gov/Safer-Streets/PDI-Police-Data-Initiative-Crime-Incidents/k59e-2pvf/data">Cincinnati PDI (Police Data Initiative) Crime Incidents</a></p>
+</section>
+<section id="fetch-and-wrangle" class="slide level2">
+<h2>Fetch and wrangle</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">data_file &lt;-<span class="st"> &quot;data/crimes.csv&quot;</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">data_url  &lt;-<span class="st"> &quot;https://data.cincinnati-oh.gov/api/views/k59e-2pvf/rows.csv?accessType=DOWNLOAD&quot;</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="co"># Download data if not already in place</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="cf">if</span> (<span class="op">!</span><span class="kw">file.exists</span>(data_file)) <span class="kw">download.file</span>(data_url, data_file)</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="co"># Read in data and count incidents by date</span></a>
+<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="co"># Filter to 2011 onwards and only for valid neighborhoods</span></a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">daily &lt;-<span class="st"> </span><span class="kw">fread</span>(data_file) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="st">  </span>.[, .(<span class="dt">incidents =</span> .N)</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">    , .(<span class="dt">date =</span> <span class="kw">as_date</span>(<span class="kw">mdy_hms</span>(DATE_REPORTED)), <span class="dt">hood =</span> SNA_NEIGHBORHOOD)] <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="st">  </span>.[date <span class="op">%between%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;2011-01-01&#39;</span>, <span class="st">&#39;2017-12-31&#39;</span>) <span class="op">&amp;</span><span class="st"> </span>hood <span class="op">!=</span><span class="st"> &quot;N/A&quot;</span>, ]</a></code></pre></div>
+</section>
+<section class="slide level2">
+
+<p>Using <code>tsibble</code>, aggregage by year-month and pad to ensure no <strong>implicit</strong> missing values</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">monthly &lt;-<span class="st"> </span>daily <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="st">  </span><span class="kw">as_tsibble</span>(., <span class="dt">key =</span> <span class="kw">id</span>(hood)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="st">  </span><span class="kw">group_by_key</span>(.) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="st">  </span><span class="kw">index_by</span>(<span class="dt">month =</span> <span class="kw">yearmonth</span>(date)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">incidents =</span> <span class="kw">sum</span>(incidents)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="st">  </span><span class="kw">fill_gaps</span>(., <span class="dt">incidents =</span> 0L, <span class="dt">.full =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">  </a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="kw">glimpse</span>(monthly)</a></code></pre></div>
+<pre><code>## Observations: 4,200
+## Variables: 3
+## Key: hood [50]
+## $ hood      &lt;chr&gt; &quot;AVONDALE&quot;, &quot;AVONDALE&quot;, &quot;AVONDALE&quot;, &quot;AVONDALE&quot;, &quot;AVO...
+## $ month     &lt;mth&gt; 2011 Jan, 2011 Feb, 2011 Mar, 2011 Apr, 2011 May, 20...
+## $ incidents &lt;int&gt; 235, 166, 202, 206, 206, 220, 268, 271, 226, 223, 24...</code></pre>
+</section>
+<section id="crime-varies-widely-surprise" class="slide level2">
+<h2>Crime varies widely (<b class="purple">surprise?</b>)</h2>
+<pre><code>##                              hood       mean  N
+## 1                        AVONDALE 176.952381 84
+## 2                       BOND HILL  56.702381 84
+## 3                      CALIFORNIA   3.273810 84
+## 4                 CAMP WASHINGTON  25.535714 84
+## 5                        CARTHAGE  37.333333 84
+## 6                         CLIFTON  52.595238 84
+## 7                    COLLEGE HILL 103.309524 84
+## 8               COLUMBIA TUSCULUM   4.285714 84
+## 9                      CORRYVILLE  56.761905 84
+## 10                            CUF 145.797619 84
+## 11                       DOWNTOWN 118.440476 84
+## 12                       EAST END  17.488095 84
+## 13                EAST PRICE HILL 225.892857 84
+## 14              EAST WALNUT HILLS  26.261905 84
+## 15                  EAST WESTWOOD  25.500000 84
+## 16                  ENGLISH WOODS   6.178571 84
+## 17                       EVANSTON  72.630952 84
+## 18                       HARTWELL  30.059524 84
+## 19                      HYDE PARK  42.321429 84
+## 20                KENNEDY HEIGHTS  23.821429 84
+## 21                        LINWOOD  18.154762 84
+## 22               LOWER PRICE HILL  18.869048 84
+## 23                   MADISONVILLE  67.607143 84
+## 24                       MILLVALE  43.440476 84
+## 25                      MT. ADAMS  10.630952 84
+## 26                       MT. AIRY  97.547619 84
+## 27                     MT. AUBURN  56.059524 84
+## 28                    MT. LOOKOUT  12.000000 84
+## 29                 MT. WASHINGTON  48.238095 84
+## 30 NORTH AVONDALE - PADDOCK HILLS  33.547619 84
+## 31                NORTH FAIRMOUNT  25.404762 84
+## 32                      NORTHSIDE  75.345238 84
+## 33                         OAKLEY  68.976190 84
+## 34                 OVER-THE-RHINE 131.535714 84
+## 35                      PENDLETON  19.619048 84
+## 36                 PLEASANT RIDGE  42.595238 84
+## 37                     QUEENSGATE  21.142857 84
+## 38                      RIVERSIDE  22.642857 84
+## 39                       ROSELAWN  86.261905 84
+## 40                    SAYLER PARK  20.107143 84
+## 41                    SEDAMSVILLE   6.547619 84
+## 42             SOUTH CUMMINSVILLE  10.154762 84
+## 43                SOUTH FAIRMOUNT  39.869048 84
+## 44           SPRING GROVE VILLAGE  33.428571 84
+## 45          VILLAGES AT ROLL HILL  30.166667 84
+## 46                   WALNUT HILLS 112.214286 84
+## 47                       WEST END  96.250000 84
+## 48                WEST PRICE HILL 182.821429 84
+## 49                       WESTWOOD 316.142857 84
+## 50                   WINTON HILLS  72.619048 84</code></pre>
+<p>Most importantly all neighborhoods have the same number of records, since our time series need to be of <strong>equal length</strong></p>
+</section>
+<section id="what-if-madtree-is-bringing-crime-to-oakley" class="slide level2">
+<h2>What if Madtree is bringing crime to Oakley?</h2>
+<p><img data-src="figures/madtree.png" /></p>
+</section>
+<section class="slide level2">
+
+<h3 id="monthly-incidents-in-oakley">Monthly incidents in Oakley</h3>
+<p><img data-src="2019.02.20_CINDAY_RUG_files/figure-revealjs/unnamed-chunk-4-1.png" /><!-- --></p>
+</section>
+<section id="control-candidates" class="slide level2">
+<h2>Control candidates</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">m &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(monthly) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  </span><span class="kw">best_matches</span>(., </a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">               <span class="dt">id_variable           =</span> <span class="st">&quot;hood&quot;</span>,</a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">               <span class="dt">date_variable         =</span> <span class="st">&quot;month&quot;</span>,</a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">               <span class="dt">matching_variable     =</span> <span class="st">&quot;incidents&quot;</span>,</a>
+<a class="sourceLine" id="cb6-6" data-line-number="6">               <span class="dt">markets_to_be_matched =</span> <span class="st">&quot;OAKLEY&quot;</span>,</a>
+<a class="sourceLine" id="cb6-7" data-line-number="7">               <span class="dt">start_match_period    =</span> <span class="st">&quot;2011-01-01&quot;</span>,</a>
+<a class="sourceLine" id="cb6-8" data-line-number="8">               <span class="dt">end_match_period      =</span> <span class="st">&quot;2017-02-28&quot;</span>)</a>
+<a class="sourceLine" id="cb6-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb6-10" data-line-number="10">m<span class="op">$</span>BestMatches</a></code></pre></div>
+<pre><code>##     hood  BestControl RelativeDistance Correlation Length
+## 1 OAKLEY WINTON HILLS        0.2831123   0.4735682     74
+## 2 OAKLEY     EVANSTON        0.2926153   0.3434832     74
+## 3 OAKLEY    BOND HILL        0.2987527   0.3796065     74
+## 4 OAKLEY   MT. AUBURN        0.3316175   0.3448299     74
+## 5 OAKLEY MADISONVILLE        0.3379529   0.1720065     74
+##   MatchingStartDate MatchingEndDate rank
+## 1          2011 Jan        2017 Feb    1
+## 2          2011 Jan        2017 Feb    2
+## 3          2011 Jan        2017 Feb    3
+## 4          2011 Jan        2017 Feb    4
+## 5          2011 Jan        2017 Feb    5</code></pre>
+</section>
+<section id="inference" class="slide level2">
+<h2>Inference</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">proof &lt;-<span class="st"> </span><span class="kw">inference</span>(<span class="dt">matched_markets =</span> m, </a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">                   <span class="dt">test_market     =</span> <span class="st">&quot;OAKLEY&quot;</span>,</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">                   <span class="dt">end_post_period =</span> <span class="st">&quot;2019-01-01&quot;</span>)</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">proof<span class="op">$</span>CausalImpactObject</a></code></pre></div>
+<pre><code>## Posterior inference {CausalImpact}
+## 
+##                          Average       Cumulative 
+## Actual                   74            743        
+## Prediction (s.d.)        64 (4.4)      639 (43.6) 
+## 95% CI                   [55, 73]      [553, 728] 
+##                                                   
+## Absolute effect (s.d.)   10 (4.4)      104 (43.6) 
+## 95% CI                   [1.5, 19]     [15.1, 190]
+##                                                   
+## Relative effect (s.d.)   16% (6.8%)    16% (6.8%) 
+## 95% CI                   [2.4%, 30%]   [2.4%, 30%]
+## 
+## Posterior tail-area probability p:   0.01429
+## Posterior prob. of a causal effect:  98.571%
+## 
+## For more details, type: summary(impact, &quot;report&quot;)</code></pre>
+</section>
+<section id="potential-outcomes-1" class="slide level2">
+<h2>Potential outcomes</h2>
+<p><img data-src="2019.02.20_CINDAY_RUG_files/figure-revealjs/unnamed-chunk-9-1.png" /><!-- --></p>
+</section>
+<section id="cumulative-difference" class="slide level2">
+<h2>Cumulative difference</h2>
+<p><img data-src="2019.02.20_CINDAY_RUG_files/figure-revealjs/unnamed-chunk-10-1.png" /><!-- --></p>
+</section>
+<section id="oakley-vs-similar-crime-markets" class="slide level2">
+<h2>Oakley vs similar crime “markets”</h2>
+<p><img data-src="2019.02.20_CINDAY_RUG_files/figure-revealjs/unnamed-chunk-11-1.png" /><!-- --></p>
+</section>
+<section id="diagnostics-on-the-error-prior" class="slide level2">
+<h2>Diagnostics on the error prior</h2>
+<p><img data-src="2019.02.20_CINDAY_RUG_files/figure-revealjs/unnamed-chunk-12-1.png" /><!-- --></p>
+</section>
+<section id="the-end" class="slide level2">
+<h2>The End</h2>
+</section>
+    </div>
+  </div>
+
+  <script src="2019.02.20_CINDAY_RUG_files/reveal.js-3.3.0.1/lib/js/head.min.js"></script>
+  <script src="2019.02.20_CINDAY_RUG_files/reveal.js-3.3.0.1/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Display the page number of the current slide
+        slideNumber: true,
+        // Push each slide change to the browser history
+        history: true,
+        // Vertical centering of slides
+        center: true,
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+        // Transition style
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'default', // none/fade/slide/convex/concave/zoom
+
+
+
+        chalkboard: {
+        },
+
+        keyboard: {
+          67: function() { RevealChalkboard.toggleNotesCanvas() },    // toggle notes canvas when 'c' is pressed
+          66: function() { RevealChalkboard.toggleChalkboard() }, // toggle chalkboard when 'b' is pressed
+          46: function() { RevealChalkboard.clear() },    // clear chalkboard when 'DEL' is pressed
+           8: function() { RevealChalkboard.reset() },    // reset chalkboard data on current slide when 'BACKSPACE' is pressed
+          68: function() { RevealChalkboard.download() }, // downlad recorded chalkboard drawing when 'd' is pressed
+        },
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: '2019.02.20_CINDAY_RUG_files/reveal.js-3.3.0.1/plugin/chalkboard/chalkboard.js', async: true },
+        ]
+      });
+    </script>
+  <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+
+<script>
+  (function() {
+    if (window.jQuery) {
+      Reveal.addEventListener( 'slidechanged', function(event) {  
+        window.jQuery(event.previousSlide).trigger('hidden');
+        window.jQuery(event.currentSlide).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+
+  </body>
+</html>

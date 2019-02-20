@@ -39,6 +39,13 @@ library(ggplot2)
 ```
 
 
+----
+
+The slides at:
+https://github.com/epspi/CIN-DAY_RUG_02.20.2019
+
+----
+
 ## Agenda
 - Discussion: what's your workflow for analyzing interventions?
 - The building blocks (**bsts**, **CausalImpact**, and **dtw**)

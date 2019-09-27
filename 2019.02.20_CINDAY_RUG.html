@@ -29,7 +29,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -656,90 +656,90 @@ document.getElementsByTagName('head')[0].appendChild(style);
 </section>
 <section id="fetch-and-wrangle" class="slide level2">
 <h2>Fetch and wrangle</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">data_file &lt;-<span class="st"> &quot;data/crimes.csv&quot;</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">data_url  &lt;-<span class="st"> &quot;https://data.cincinnati-oh.gov/api/views/k59e-2pvf/rows.csv?accessType=DOWNLOAD&quot;</span></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="co"># Download data if not already in place</span></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="cf">if</span> (<span class="op">!</span><span class="kw">file.exists</span>(data_file)) <span class="kw">download.file</span>(data_url, data_file)</a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="co"># Read in data and count incidents by date</span></a>
-<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="co"># Filter to 2011 onwards and only for valid neighborhoods</span></a>
-<a class="sourceLine" id="cb2-9" data-line-number="9">daily &lt;-<span class="st"> </span><span class="kw">fread</span>(data_file) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="st">  </span>.[, .(<span class="dt">incidents =</span> .N)</a>
-<a class="sourceLine" id="cb2-11" data-line-number="11">    , .(<span class="dt">date =</span> <span class="kw">as_date</span>(<span class="kw">mdy_hms</span>(DATE_REPORTED)), <span class="dt">hood =</span> SNA_NEIGHBORHOOD)] <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="st">  </span>.[date <span class="op">%between%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;2011-01-01&#39;</span>, <span class="st">&#39;2017-12-31&#39;</span>) <span class="op">&amp;</span><span class="st"> </span>hood <span class="op">!=</span><span class="st"> &quot;N/A&quot;</span>, ]</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">data_file &lt;-<span class="st"> &quot;data/crimes.csv&quot;</span></a>
+<a class="sourceLine" id="cb2-2" title="2">data_url  &lt;-<span class="st"> &quot;https://data.cincinnati-oh.gov/api/views/k59e-2pvf/rows.csv?accessType=DOWNLOAD&quot;</span></a>
+<a class="sourceLine" id="cb2-3" title="3"></a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="co"># Download data if not already in place</span></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="cf">if</span> (<span class="op">!</span><span class="kw">file.exists</span>(data_file)) <span class="kw">download.file</span>(data_url, data_file)</a>
+<a class="sourceLine" id="cb2-6" title="6"></a>
+<a class="sourceLine" id="cb2-7" title="7"><span class="co"># Read in data and count incidents by date</span></a>
+<a class="sourceLine" id="cb2-8" title="8"><span class="co"># Filter to 2011 onwards and only for valid neighborhoods</span></a>
+<a class="sourceLine" id="cb2-9" title="9">daily &lt;-<span class="st"> </span><span class="kw">fread</span>(data_file) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb2-10" title="10"><span class="st">  </span>.[, .(<span class="dt">incidents =</span> .N)</a>
+<a class="sourceLine" id="cb2-11" title="11">    , .(<span class="dt">date =</span> <span class="kw">as_date</span>(<span class="kw">mdy_hms</span>(DATE_REPORTED)), <span class="dt">hood =</span> SNA_NEIGHBORHOOD)] <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb2-12" title="12"><span class="st">  </span>.[date <span class="op">%between%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;2011-01-01&#39;</span>, <span class="st">&#39;2017-12-31&#39;</span>) <span class="op">&amp;</span><span class="st"> </span>hood <span class="op">!=</span><span class="st"> &quot;N/A&quot;</span>, ]</a></code></pre></div>
 </section>
 <section class="slide level2">
 
 <p>Using <code>tsibble</code>, aggregage by year-month and pad to ensure no <strong>implicit</strong> missing values</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">monthly &lt;-<span class="st"> </span>daily <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="st">  </span><span class="kw">as_tsibble</span>(., <span class="dt">key =</span> <span class="kw">id</span>(hood)) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="st">  </span><span class="kw">group_by_key</span>(.) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="st">  </span><span class="kw">index_by</span>(<span class="dt">month =</span> <span class="kw">yearmonth</span>(date)) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">incidents =</span> <span class="kw">sum</span>(incidents)) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="st">  </span><span class="kw">fill_gaps</span>(., <span class="dt">incidents =</span> 0L, <span class="dt">.full =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb3-7" data-line-number="7">  </a>
-<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="kw">glimpse</span>(monthly)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">monthly &lt;-<span class="st"> </span>daily <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="st">  </span><span class="kw">as_tsibble</span>(., <span class="dt">key =</span> <span class="kw">id</span>(hood)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="st">  </span><span class="kw">group_by_key</span>(.) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="st">  </span><span class="kw">index_by</span>(<span class="dt">month =</span> <span class="kw">yearmonth</span>(date)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-5" title="5"><span class="st">  </span><span class="kw">summarise</span>(<span class="dt">incidents =</span> <span class="kw">sum</span>(incidents)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb3-6" title="6"><span class="st">  </span><span class="kw">fill_gaps</span>(., <span class="dt">incidents =</span> 0L, <span class="dt">.full =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb3-7" title="7">  </a>
+<a class="sourceLine" id="cb3-8" title="8"><span class="kw">glimpse</span>(monthly)</a></code></pre></div>
 <pre><code>## Observations: 4,200
 ## Variables: 3
 ## Key: hood [50]
 ## $ hood      &lt;chr&gt; &quot;AVONDALE&quot;, &quot;AVONDALE&quot;, &quot;AVONDALE&quot;, &quot;AVONDALE&quot;, &quot;AVO...
 ## $ month     &lt;mth&gt; 2011 Jan, 2011 Feb, 2011 Mar, 2011 Apr, 2011 May, 20...
-## $ incidents &lt;int&gt; 235, 166, 202, 206, 206, 220, 268, 271, 226, 223, 24...</code></pre>
+## $ incidents &lt;int&gt; 267, 177, 220, 246, 236, 236, 314, 289, 250, 239, 26...</code></pre>
 </section>
 <section id="crime-varies-widely-surprise" class="slide level2">
 <h2>Crime varies widely (<b class="purple">surprise?</b>)</h2>
 <pre><code>##                              hood       mean  N
-## 1                        AVONDALE 176.952381 84
-## 2                       BOND HILL  56.702381 84
-## 3                      CALIFORNIA   3.273810 84
-## 4                 CAMP WASHINGTON  25.535714 84
-## 5                        CARTHAGE  37.333333 84
-## 6                         CLIFTON  52.595238 84
-## 7                    COLLEGE HILL 103.309524 84
-## 8               COLUMBIA TUSCULUM   4.285714 84
-## 9                      CORRYVILLE  56.761905 84
-## 10                            CUF 145.797619 84
-## 11                       DOWNTOWN 118.440476 84
-## 12                       EAST END  17.488095 84
-## 13                EAST PRICE HILL 225.892857 84
-## 14              EAST WALNUT HILLS  26.261905 84
-## 15                  EAST WESTWOOD  25.500000 84
-## 16                  ENGLISH WOODS   6.178571 84
-## 17                       EVANSTON  72.630952 84
-## 18                       HARTWELL  30.059524 84
-## 19                      HYDE PARK  42.321429 84
-## 20                KENNEDY HEIGHTS  23.821429 84
-## 21                        LINWOOD  18.154762 84
-## 22               LOWER PRICE HILL  18.869048 84
-## 23                   MADISONVILLE  67.607143 84
-## 24                       MILLVALE  43.440476 84
-## 25                      MT. ADAMS  10.630952 84
-## 26                       MT. AIRY  97.547619 84
-## 27                     MT. AUBURN  56.059524 84
-## 28                    MT. LOOKOUT  12.000000 84
-## 29                 MT. WASHINGTON  48.238095 84
-## 30 NORTH AVONDALE - PADDOCK HILLS  33.547619 84
-## 31                NORTH FAIRMOUNT  25.404762 84
-## 32                      NORTHSIDE  75.345238 84
-## 33                         OAKLEY  68.976190 84
-## 34                 OVER-THE-RHINE 131.535714 84
-## 35                      PENDLETON  19.619048 84
-## 36                 PLEASANT RIDGE  42.595238 84
-## 37                     QUEENSGATE  21.142857 84
-## 38                      RIVERSIDE  22.642857 84
-## 39                       ROSELAWN  86.261905 84
-## 40                    SAYLER PARK  20.107143 84
-## 41                    SEDAMSVILLE   6.547619 84
-## 42             SOUTH CUMMINSVILLE  10.154762 84
-## 43                SOUTH FAIRMOUNT  39.869048 84
-## 44           SPRING GROVE VILLAGE  33.428571 84
-## 45          VILLAGES AT ROLL HILL  30.166667 84
-## 46                   WALNUT HILLS 112.214286 84
-## 47                       WEST END  96.250000 84
-## 48                WEST PRICE HILL 182.821429 84
-## 49                       WESTWOOD 316.142857 84
-## 50                   WINTON HILLS  72.619048 84</code></pre>
+## 1                        AVONDALE 193.333333 84
+## 2                       BOND HILL  61.476190 84
+## 3                      CALIFORNIA   3.821429 84
+## 4                 CAMP WASHINGTON  27.714286 84
+## 5                        CARTHAGE  40.107143 84
+## 6                         CLIFTON  54.880952 84
+## 7                    COLLEGE HILL 108.369048 84
+## 8               COLUMBIA TUSCULUM   4.404762 84
+## 9                      CORRYVILLE  58.523810 84
+## 10                            CUF 156.940476 84
+## 11                       DOWNTOWN 139.154762 84
+## 12                       EAST END  21.238095 84
+## 13                EAST PRICE HILL 246.595238 84
+## 14              EAST WALNUT HILLS  27.940476 84
+## 15                  EAST WESTWOOD  26.785714 84
+## 16                  ENGLISH WOODS   6.523810 84
+## 17                       EVANSTON  79.226190 84
+## 18                       HARTWELL  30.583333 84
+## 19                      HYDE PARK  44.523810 84
+## 20                KENNEDY HEIGHTS  25.500000 84
+## 21                        LINWOOD  19.595238 84
+## 22               LOWER PRICE HILL  21.130952 84
+## 23                   MADISONVILLE  71.416667 84
+## 24                       MILLVALE  45.202381 84
+## 25                      MT. ADAMS  13.047619 84
+## 26                       MT. AIRY 101.654762 84
+## 27                     MT. AUBURN  63.035714 84
+## 28                    MT. LOOKOUT  13.178571 84
+## 29                 MT. WASHINGTON  50.797619 84
+## 30 NORTH AVONDALE - PADDOCK HILLS  34.607143 84
+## 31                NORTH FAIRMOUNT  26.845238 84
+## 32                      NORTHSIDE  80.702381 84
+## 33                         OAKLEY  70.345238 84
+## 34                 OVER-THE-RHINE 155.833333 84
+## 35                      PENDLETON  22.869048 84
+## 36                 PLEASANT RIDGE  42.476190 84
+## 37                     QUEENSGATE  22.869048 84
+## 38                      RIVERSIDE  23.630952 84
+## 39                       ROSELAWN  89.380952 84
+## 40                    SAYLER PARK  21.142857 84
+## 41                    SEDAMSVILLE   6.940476 84
+## 42             SOUTH CUMMINSVILLE  11.666667 84
+## 43                SOUTH FAIRMOUNT  43.547619 84
+## 44           SPRING GROVE VILLAGE  35.011905 84
+## 45          VILLAGES AT ROLL HILL  31.547619 84
+## 46                   WALNUT HILLS 125.452381 84
+## 47                       WEST END 109.678571 84
+## 48                WEST PRICE HILL 192.154762 84
+## 49                       WESTWOOD 332.142857 84
+## 50                   WINTON HILLS  75.178571 84</code></pre>
 <p>Most importantly all neighborhoods have the same number of records, since our time series need to be of <strong>equal length</strong></p>
 </section>
 <section id="what-if-madtree-is-bringing-crime-to-oakley" class="slide level2">
@@ -753,22 +753,22 @@ document.getElementsByTagName('head')[0].appendChild(style);
 </section>
 <section id="control-candidates" class="slide level2">
 <h2>Control candidates</h2>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">m &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(monthly) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  </span><span class="kw">best_matches</span>(., </a>
-<a class="sourceLine" id="cb6-3" data-line-number="3">               <span class="dt">id_variable           =</span> <span class="st">&quot;hood&quot;</span>,</a>
-<a class="sourceLine" id="cb6-4" data-line-number="4">               <span class="dt">date_variable         =</span> <span class="st">&quot;month&quot;</span>,</a>
-<a class="sourceLine" id="cb6-5" data-line-number="5">               <span class="dt">matching_variable     =</span> <span class="st">&quot;incidents&quot;</span>,</a>
-<a class="sourceLine" id="cb6-6" data-line-number="6">               <span class="dt">markets_to_be_matched =</span> <span class="st">&quot;OAKLEY&quot;</span>,</a>
-<a class="sourceLine" id="cb6-7" data-line-number="7">               <span class="dt">start_match_period    =</span> <span class="st">&quot;2011-01-01&quot;</span>,</a>
-<a class="sourceLine" id="cb6-8" data-line-number="8">               <span class="dt">end_match_period      =</span> <span class="st">&quot;2017-02-28&quot;</span>)</a>
-<a class="sourceLine" id="cb6-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb6-10" data-line-number="10">m<span class="op">$</span>BestMatches</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">m &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(monthly) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="st">  </span><span class="kw">best_matches</span>(., </a>
+<a class="sourceLine" id="cb6-3" title="3">               <span class="dt">id_variable           =</span> <span class="st">&quot;hood&quot;</span>,</a>
+<a class="sourceLine" id="cb6-4" title="4">               <span class="dt">date_variable         =</span> <span class="st">&quot;month&quot;</span>,</a>
+<a class="sourceLine" id="cb6-5" title="5">               <span class="dt">matching_variable     =</span> <span class="st">&quot;incidents&quot;</span>,</a>
+<a class="sourceLine" id="cb6-6" title="6">               <span class="dt">markets_to_be_matched =</span> <span class="st">&quot;OAKLEY&quot;</span>,</a>
+<a class="sourceLine" id="cb6-7" title="7">               <span class="dt">start_match_period    =</span> <span class="st">&quot;2011-01-01&quot;</span>,</a>
+<a class="sourceLine" id="cb6-8" title="8">               <span class="dt">end_match_period      =</span> <span class="st">&quot;2017-02-28&quot;</span>)</a>
+<a class="sourceLine" id="cb6-9" title="9"></a>
+<a class="sourceLine" id="cb6-10" title="10">m<span class="op">$</span>BestMatches</a></code></pre></div>
 <pre><code>##     hood  BestControl RelativeDistance Correlation Length
-## 1 OAKLEY WINTON HILLS        0.2831123   0.4735682     74
-## 2 OAKLEY     EVANSTON        0.2926153   0.3434832     74
-## 3 OAKLEY    BOND HILL        0.2987527   0.3796065     74
-## 4 OAKLEY   MT. AUBURN        0.3316175   0.3448299     74
-## 5 OAKLEY MADISONVILLE        0.3379529   0.1720065     74
+## 1 OAKLEY    BOND HILL        0.2710190   0.4771407     74
+## 2 OAKLEY WINTON HILLS        0.2793491   0.4882987     74
+## 3 OAKLEY   MT. AUBURN        0.2851608   0.3594861     74
+## 4 OAKLEY     EVANSTON        0.3504456   0.3963057     74
+## 5 OAKLEY   CORRYVILLE        0.3508330   0.3613581     74
 ##   MatchingStartDate MatchingEndDate rank
 ## 1          2011 Jan        2017 Feb    1
 ## 2          2011 Jan        2017 Feb    2
@@ -778,26 +778,26 @@ document.getElementsByTagName('head')[0].appendChild(style);
 </section>
 <section id="inference" class="slide level2">
 <h2>Inference</h2>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">proof &lt;-<span class="st"> </span><span class="kw">inference</span>(<span class="dt">matched_markets =</span> m, </a>
-<a class="sourceLine" id="cb8-2" data-line-number="2">                   <span class="dt">test_market     =</span> <span class="st">&quot;OAKLEY&quot;</span>,</a>
-<a class="sourceLine" id="cb8-3" data-line-number="3">                   <span class="dt">end_post_period =</span> <span class="st">&quot;2019-01-01&quot;</span>)</a>
-<a class="sourceLine" id="cb8-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb8-5" data-line-number="5">proof<span class="op">$</span>CausalImpactObject</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">proof &lt;-<span class="st"> </span><span class="kw">inference</span>(<span class="dt">matched_markets =</span> m, </a>
+<a class="sourceLine" id="cb8-2" title="2">                   <span class="dt">test_market     =</span> <span class="st">&quot;OAKLEY&quot;</span>,</a>
+<a class="sourceLine" id="cb8-3" title="3">                   <span class="dt">end_post_period =</span> <span class="st">&quot;2019-01-01&quot;</span>)</a>
+<a class="sourceLine" id="cb8-4" title="4"></a>
+<a class="sourceLine" id="cb8-5" title="5">proof<span class="op">$</span>CausalImpactObject</a></code></pre></div>
 <pre><code>## Posterior inference {CausalImpact}
 ## 
-##                          Average       Cumulative 
-## Actual                   74            743        
-## Prediction (s.d.)        64 (4.4)      639 (43.6) 
-## 95% CI                   [55, 73]      [553, 728] 
-##                                                   
-## Absolute effect (s.d.)   10 (4.4)      104 (43.6) 
-## 95% CI                   [1.5, 19]     [15.1, 190]
-##                                                   
-## Relative effect (s.d.)   16% (6.8%)    16% (6.8%) 
-## 95% CI                   [2.4%, 30%]   [2.4%, 30%]
+##                          Average        Cumulative  
+## Actual                   75             747         
+## Prediction (s.d.)        66 (4.7)       662 (47.1)  
+## 95% CI                   [57, 76]       [569, 756]  
+##                                                     
+## Absolute effect (s.d.)   8.5 (4.7)      84.7 (47.1) 
+## 95% CI                   [-0.92, 18]    [-9.20, 178]
+##                                                     
+## Relative effect (s.d.)   13% (7.1%)     13% (7.1%)  
+## 95% CI                   [-1.4%, 27%]   [-1.4%, 27%]
 ## 
-## Posterior tail-area probability p:   0.01429
-## Posterior prob. of a causal effect:  98.571%
+## Posterior tail-area probability p:   0.041
+## Posterior prob. of a causal effect:  95.9%
 ## 
 ## For more details, type: summary(impact, &quot;report&quot;)</code></pre>
 </section>
